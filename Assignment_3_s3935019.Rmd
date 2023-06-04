@@ -1,6 +1,5 @@
 ---
 title: "Assignment 3 (Storytelling wirh Open Data)"
-author: "Rakyan Adhikara"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
@@ -10,10 +9,11 @@ runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
+# List of libraries
+library(shiny)
 library(ggplot2)
 library(GGally)
 library(tidyverse)
-df_raw <- read.csv("Video_Games_Sales_as_at_22_Dec_2016.csv")
 ```
 
 Sidebar {.sidebar}
@@ -22,35 +22,55 @@ Sidebar {.sidebar}
 ### Analysis for "Video Games Sales Dataset"
 
 Student Name: Rakyan Adhikara
+
 Student ID: s3935019
-GitHub Page: [Here]()
+
+GitHub Page: [Here](https://github.com/radhikara-rmit/videogamessales_analysis)
 
 
 ```{r}
-# Rate at which to flag high download traffic
-# sliderInput("rateThreshold", "Warn when rate exceeds:",
-#             min = 0, max = 50, value = 3, step = 0.1
-# )
-# 
-# # Maximum number of raw data rows to keep
-# numericInput("maxrows", "Recent downloads window:", 50)
+# Importing dataset
+data <- read.csv("Video_Games_Sales_as_at_22_Dec_2016.csv")
+
+# data pre-processing
+data <- data %>% filter(Year_of_Release >= 2012)
+data <- data %>% mutate(User_Popularity = if_else(User_Count >= 1000, "Popular", "Not Popular"))
+data <- na.omit(data)
+data$User_Score <- as.numeric(data$User_Score)
+data$Year_of_Release <- as.numeric(data$Year_of_Release)
 ```
 
-Details on the dataset
+Explanation
 =======================================================================
 
-### Recent Downlads
+### Introduction
 
+Video games are now such a commodity that people of all ages to enjoy. However, the market nowadays is relatively unchartered compared to other market. As such, some analyses for the global sales, the critic scores and the User Scores would have many real-world uses. Example, small indie video game companies will know what are their best video game genres or platforms to create by using this predictive model. More importantly, we as customers can figure out if the global sales, the critic scores and the User Score can be a great objective opinions of the games that we would like to buy in the future.
 
+Thus, the main objective of this dashboard are analysis on Global Sales, User Scores, Critic Scores.
 
-```{r}
-# renderTable({
-#   downloads <- tail(pkgData(), n = input$maxrows)
-#   downloads <- downloads[,c("date", "time", "size", "r_version", 
-#                             "r_arch", "r_os", "package")]
-#   downloads[order(nrow(downloads):1),]
-# })
-```
+At this point, we make the important assumption that rows in our dataset are not correlated. That is, we assume that the global sales number observations are independent of one another in this dataset. 
+
+### Dataset Features
+
+Here are list of dataset features, the units and descriptions of each features:
+
+  1. `Name` (**NA**): Name of the video game
+  2. `Platform` (**NA**): Platform of the video game
+  3. `Year_of_Release` (**yyyy**): Year of release of the video game
+  4. `Genre` (**NA**): Genre of video game
+  5. `Publisher` (**NA**): Publisher of video game
+  6. `NA_Sales` (**USD, in millions**): Sales number of video game in North America
+  7. `EU_Sales` (**USD, in millions**): Sales number of video game in Europe
+  8. `JP_Sales` (**USD, in millions**): Sales number of video game in Japan
+  9. `Other_Sales` (**USD, in millions**): Sales number of video game in other regions
+  10. `Global_Sales` (**USD, in millions**): Sales number of video game globally
+  11. `Critic_Score` (**NA**): Aggregate score compiled by Metacritic staff
+  12. `Critic_Count` (**NA**): The number of critics
+  13. `User_Score` (**NA**): Score by Metacritic's subscribers
+  14. `User_Count` (**NA**): Number of users
+  15. `Developer` (**NA**): Developer of the game
+  16. `Rating` (**NA**): The ESRB ratings
 
 Main analysis
 =======================================================================
@@ -193,16 +213,52 @@ Row
 
 ```
 
-Recent Downloads
+Details
 =======================================================================
 
 ### Recent Downlads
 
 ```{r}
-# renderTable({
-#   downloads <- tail(pkgData(), n = input$maxrows)
-#   downloads <- downloads[,c("date", "time", "size", "r_version", 
-#                             "r_arch", "r_os", "package")]
-#   downloads[order(nrow(downloads):1),]
-# })
+ui <- fluidPage(
+  titlePanel("censusVis"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      helpText("Create demographic maps with 
+               information from the 2010 US Census."),
+      
+      selectInput("var", 
+                  label = "Choose a variable to display",
+                  choices = c("Percent White", 
+                              "Percent Black",
+                              "Percent Hispanic", 
+                              "Percent Asian"),
+                  selected = "Percent White"),
+      
+      sliderInput("range", 
+                  label = "Range of interest:",
+                  min = 0, max = 100, value = c(0, 100))
+    ),
+    
+    mainPanel(
+      textOutput("selected_var"),
+      textOutput("min_max")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  output$selected_var <- renderText({ 
+    paste("You have selected", input$var)
+  })
+  
+  output$min_max <- renderText({ 
+    paste("You have chosen a range that goes from",
+          input$range[1], "to", input$range[2])
+  })
+  
+}
+
+shinyApp(ui, server)
 ```
