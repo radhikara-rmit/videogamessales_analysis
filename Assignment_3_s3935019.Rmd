@@ -27,6 +27,8 @@ Student ID: s3935019
 
 GitHub Page: [Here](https://github.com/radhikara-rmit/videogamessales_analysis)
 
+Dataset: [Video Games Sales Dataset](https://www.kaggle.com/datasets/sidtwr/videogames-sales-dataset)
+
 
 ```{r}
 # Importing dataset
@@ -48,6 +50,8 @@ Explanation
 Video games are now such a commodity that people of all ages to enjoy. However, the market nowadays is relatively unchartered compared to other market. As such, some analyses for the critic scores and the User Scores would have many real-world uses. Example, small indie video game companies will know what are their best video game genres or platforms to create by using this predictive model. More importantly, we as customers can figure out if the critic scores and the User Score can be a great objective opinions of the games that we would like to buy in the future.
 
 Thus, the main objective of this dashboard are analysis on User Scores, Critic Scores. 
+
+Dataset is from Kaggle: https://www.kaggle.com/datasets/sidtwr/videogames-sales-dataset
 
 ### Dataset Features
 
