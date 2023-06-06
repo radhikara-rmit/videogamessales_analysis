@@ -45,11 +45,9 @@ Explanation
 
 ### Introduction
 
-Video games are now such a commodity that people of all ages to enjoy. However, the market nowadays is relatively unchartered compared to other market. As such, some analyses for the global sales, the critic scores and the User Scores would have many real-world uses. Example, small indie video game companies will know what are their best video game genres or platforms to create by using this predictive model. More importantly, we as customers can figure out if the global sales, the critic scores and the User Score can be a great objective opinions of the games that we would like to buy in the future.
+Video games are now such a commodity that people of all ages to enjoy. However, the market nowadays is relatively unchartered compared to other market. As such, some analyses for the critic scores and the User Scores would have many real-world uses. Example, small indie video game companies will know what are their best video game genres or platforms to create by using this predictive model. More importantly, we as customers can figure out if the critic scores and the User Score can be a great objective opinions of the games that we would like to buy in the future.
 
-Thus, the main objective of this dashboard are analysis on Global Sales, User Scores, Critic Scores.
-
-At this point, we make the important assumption that rows in our dataset are not correlated. That is, we assume that the global sales number observations are independent of one another in this dataset. 
+Thus, the main objective of this dashboard are analysis on User Scores, Critic Scores. 
 
 ### Dataset Features
 
@@ -72,193 +70,129 @@ Here are list of dataset features, the units and descriptions of each features:
   15. `Developer` (**NA**): Developer of the game
   16. `Rating` (**NA**): The ESRB ratings
 
-Main analysis
+Scores with platforms
 =======================================================================
 
 Row
 -----------------------------------------------------------------------
 
-### Downloads per sec (last 5 min)
+### Box plot for user Scores for Video Games Platforms on Metacritic between 2012 and 2016
 
 ```{r}
-# downloadRate is a reactive expression that computes the download
-# rate during this dashboard's lifetime.
-# startTime <- as.numeric(Sys.time())
-# downloadRate <- reactive({
-#   elapsed <- as.numeric(Sys.time()) - startTime
-#   nrow(pkgData()) / min(maxAgeSecs, elapsed)
-# })
-# 
-# # Emit the download rate
-# renderValueBox({
-#   rate <- formatC(downloadRate(), digits = 1, format = "f")
-#   valueBox(
-#     value = rate,
-#     icon = "fa-area-chart",
-#     color = if (rate >= input$rateThreshold) "warning" else "primary"
-#   )
-# })
+data_criticscore <- with(data, reorder(Platform, -Critic_Score, median, na.rm=T))
+data_ord_criticscore <- data
+data_ord_criticscore$Platform <- factor(data_ord_criticscore$Platform,
+                             levels = levels(data_criticscore))
+plot1 <- ggplot(data_ord_criticscore, aes(x=Platform, y=Critic_Score, fill=User_Popularity)) + 
+  geom_boxplot(width=0.5) + 
+  labs(
+    x = "Types of Video Games Platforms",
+    y = "User Score on Metacritic (2012 - 2016)",
+    fill = "Popularity"
+  ) + 
+  coord_flip() + 
+  facet_wrap(~User_Popularity)
+plot1
 ```
 
-### Total downloads
+### Box plot for critic Scores for Video Games Platforms on Metacritic between 2012 and 2016
 
 ```{r}
-# dlCount is a reactive expression that keeps track of the total
-# number of rows that have ever appeared through pkgStream.
-# dlCount <- downloadCount(pkgStream)
-# 
-# # Emit the download count
-# renderValueBox({
-#   valueBox(dlCount(), icon = "fa-download")
-# })
-```
-
-### Unique users
-
-```{r}
-# usrCount is a reactive expression that keeps an approximate
-# count of all of the unique users that have been seen since the
-# app started.
-# usrCount <- userCount(pkgStream)
-# 
-# # Emit the user count
-# renderValueBox({
-#   valueBox(value = usrCount(), icon = "fa-users")
-# })
+data_userscore <- with(data, reorder(Platform, -User_Score, median, na.rm=T))
+plot2 <- ggplot(data, aes(x=reorder(Platform, -User_Score), y=User_Score, fill=User_Popularity)) + 
+  geom_boxplot(width=0.5) + 
+  labs(
+    x = "Types of Video Games Platforms",
+    y = "Critic Score on Metacritic (2012 - 2016)",
+    fill = "Popularity"
+  ) + 
+  coord_flip() + 
+  facet_wrap(~User_Popularity)
+plot2
 ```
 
 Row
 -----------------------------------------------------------------------
 
-### Downloads per sec (last 5 min)
+### Explanation
 
-```{r}
-# renderGauge({
-#   rate <- formatC(downloadRate(), digits = 1, format = "f")
-#   gauge(rate, min = 0, max = 10, gaugeSectors(
-#     success = c(0, input$rateThreshold - 1), 
-#     warning = c(input$rateThreshold - 1, input$rateThreshold), 
-#     danger = c(input$rateThreshold - 1, 10)
-#   ))
-# })
-```
+Based on the analysis above, it has been shown that based on the critic score (*sorted by the median*), the top 5 platforms in Metacritic between 2012 and 2016 are:
 
-### Average downloads per user
-
-```{r}
-# renderGauge({
-#   per <- formatC(dlCount() / usrCount(), digits = 1, format = "f")
-#   gauge(per, min = 0, max = 5, gaugeSectors(
-#     success = c(0, 3), 
-#     warning = c(3, 4), 
-#     danger = c(4, 5)
-#   ))
-# })
-```
-
-### Downloads per sec (last 5 min)
-
-```{r}
-# pkgTable <- reactive({
-#   pkgData() %>%
-#     group_by(package) %>%
-#     tally() %>%
-#     arrange(desc(n), tolower(package)) %>%
-#     mutate(percentage = n / nrow(pkgData()) * 100) %>%
-#     select("Package" = package, "Percent" = percentage) %>%
-#     as.data.frame() %>%
-#     head(30)
-# })
-# 
-# 
-# renderGauge({
-#   pct <- formatC(pkgTable()[1, 2], digits = 1, format = "f")
-#   gauge(pct, min = 0, max = 10, symbol = '%', gaugeSectors(
-#     success = c(0, 8), 
-#     warning = c(8, 9), 
-#     danger = c(9, 10)
-#   ))
-# })
-```
-
-
-Row
------------------------------------------------------------------------
-
-### Popularity by package (last 5 min) {data-width=700}
-
-```{r}
-# renderBubbles({
-#   if (nrow(pkgData()) == 0)
-#     return()
-# 
-#   order <- unique(pkgData()$package)
-#   df <- pkgData() %>%
-#     group_by(package) %>%
-#     tally() %>%
-#     arrange(desc(n), tolower(package)) %>%
-#     # Just show the top 60, otherwise it gets hard to see
-#     head(60)
-# 
-#   bubbles(df$n, df$package, key = df$package)
-# })
-```
-
-### Percent of downloads (last 5 min) {data-width=340}
-
-```{r}
-# renderTable({
-#   pkgTable()
-# }, digits = 1)
-
-```
-
-Details
-=======================================================================
-
-### Recent Downlads
-
-```{r}
-ui <- fluidPage(
-  titlePanel("censusVis"),
+  1. **_XBOX_**
+  2. _Nintendo DS_
+  3. _GameBoy Advanced_
+  4. _PC_
+  5. _PlayStation 1_
   
-  sidebarLayout(
-    sidebarPanel(
-      helpText("Create demographic maps with 
-               information from the 2010 US Census."),
-      
-      selectInput("var", 
-                  label = "Choose a variable to display",
-                  choices = c("Percent White", 
-                              "Percent Black",
-                              "Percent Hispanic", 
-                              "Percent Asian"),
-                  selected = "Percent White"),
-      
-      sliderInput("range", 
-                  label = "Range of interest:",
-                  min = 0, max = 100, value = c(0, 100))
-    ),
-    
-    mainPanel(
-      textOutput("selected_var"),
-      textOutput("min_max")
-    )
+and based on the user score (*sorted by the median*), the top 5 platforms in Metacritic between 2012 and 2016 are:
+
+  1. **_PlayStation_**
+  2. _GameBoy Advanced_
+  3. _PlayStation 2_
+  4. _Playstation Vita_
+  5. _Nintendo DS_
+
+Scores with global sales
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### Scatter plot for user Scores for Video Games Platforms on Metacritic between 2012 and 2016
+
+```{r}
+plot3 <- ggplot(data, aes(x=Critic_Score, y=Global_Sales)) + 
+  geom_point() + 
+  labs(
+    x = "Critic Score on Metacritic (2012 - 2016)",
+    y = "Global Sales (in US$, millions)",
+    fill = "Popularity"
   )
-)
-
-server <- function(input, output) {
-  
-  output$selected_var <- renderText({ 
-    paste("You have selected", input$var)
-  })
-  
-  output$min_max <- renderText({ 
-    paste("You have chosen a range that goes from",
-          input$range[1], "to", input$range[2])
-  })
-  
-}
-
-shinyApp(ui, server)
+plot3
 ```
+
+### Scatter plot for critic Scores for Video Games Platforms on Metacritic between 2012 and 2016
+
+```{r}
+plot4 <- ggplot(data, aes(x=User_Score, y=Global_Sales)) + 
+  geom_point()+ 
+  labs(
+    x = "User Score on Metacritic (2012 - 2016)",
+    y = "Global Sales (in US$, millions)",
+    fill = "Popularity"
+  )
+plot4
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Explanation
+
+Based on the analysis above, it has been shown that there are some correlations between the global scales and both critic score and user score. However, both have weak correlation considering the slope of the scatterplot.
+
+Here are some summary based on both scatterplots:
+
+  1. Sales on a video game can reach above US$5 million if the critic score of it is above or around 75.
+  2. More video games are being sold with:
+    - The critic score between 50 and 100
+    - The user score between 5.0 and 10.0
+  3. The highest video game sales has the critic score of 97 with user score at 8.2
+  3. The highest video game user score has the critic score of 83 with user score at 8.2 with global sales at US$0.09 million
+  
+```{r}
+highest_sales_name <- data[which.max(data$Global_Sales),]$Name
+highest_sales_global <- data[which.max(data$Global_Sales),]$Global_Sales
+highest_sales_critic <- data[which.max(data$Global_Sales),]$Critic_Score
+highest_sales_user <- data[which.max(data$Global_Sales),]$User_Score
+
+paste("Game name:", highest_sales_name, ", Global sales:", highest_sales_global, ", Critic Score:", highest_sales_critic, ", User score:", highest_sales_user)
+
+highest_user_name <- data[which.max(data$User_Score),]$Name
+highest_user_global <- data[which.max(data$User_Score),]$Global_Sales
+highest_user_critic <- data[which.max(data$User_Score),]$Critic_Score
+highest_user_user <- data[which.max(data$User_Score),]$User_Score
+
+paste("Game name:", highest_user_name, ", Global sales:", highest_user_global, ", Critic Score:", highest_user_critic, ", User score:", highest_user_user)
+```
+
